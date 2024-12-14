@@ -53,7 +53,7 @@ CORS_ALLOW_HEADERS = [
     'authorization',
     'x-requested-with',
 ]
-ALLOWED_HOSTS = ['46.202.171.42', 'srv668869.hstgr.cloud','http://localhost:3000']
+ALLOWED_HOSTS = ['46.202.171.42', 'srv668869.hstgr.cloud' , 'http://localhost:3000']
 
 
 MIDDLEWARE = [
