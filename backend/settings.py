@@ -55,7 +55,10 @@ CORS_ALLOW_HEADERS = [
 ]
 ALLOWED_HOSTS = ['46.202.171.42', 'srv668869.hstgr.cloud' , 'http://localhost:3000']
 
-
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000/"
+]
+CORS_ALLOW_ALL_ORIGINS = True 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
