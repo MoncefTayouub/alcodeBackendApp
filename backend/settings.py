@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-i1w+60%by(&fd_60@w0(hi%0+qvt1wnhn(aag$)j(go7#h3d7i'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 
 
@@ -53,12 +53,12 @@ CORS_ALLOW_HEADERS = [
     'authorization',
     'x-requested-with',
 ]
-ALLOWED_HOSTS = ['46.202.171.42', 'srv668869.hstgr.cloud' , 'http://localhost:3000']
+ALLOWED_HOSTS = ['46.202.171.42', 'srv668869.hstgr.cloud' ]
 
 
 # git last edit 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000/"
+    "http://localhost:3000"
 ]
 CORS_ALLOW_ALL_ORIGINS = True 
 
