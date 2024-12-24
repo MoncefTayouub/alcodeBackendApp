@@ -51,9 +51,15 @@ def serieTest (serie) :
     
 
 def generate_tokens(user):
+    # Generate the refresh token
     refresh = RefreshToken.for_user(user)
+
+    # Set the expiration time for the access token to 1 day (24 hours)
+    access_token = refresh.access_token
+    access_token.set_exp(lifetime=timedelta(days=1))  # 1 day expiration
+
     return {
-        "access": str(refresh.access_token),
+        "access": str(access_token),
         "refresh": str(refresh),
         "user_id": user.id,
         "username": user.username,
@@ -115,12 +121,15 @@ def is_user_logged_in(access_token):
         
         # If the token is valid, get the user
         user = authentication.get_user(validated_token)
+        # if user and user.is_staff:
+        #     return 2
+        
 
         # If user is found and the token is valid, return True
-        return True
+        return 1
     except AuthenticationFailed:
         # If token is invalid or expired, return False
-        return False
+        return 0
     
 def handleMails () : 
     rq = recievingMails.objects.filter(seen = False)
@@ -147,3 +156,104 @@ def getResults (serie) :
         return res 
     return []
 
+from datetime import datetime, timedelta , date
+
+def validate_date(date_string):
+
+    formats = ["%Y-%m-%d", "%m/%d/%Y", "%d-%m-%Y"]  # List of accepted formats
+    for fmt in formats:
+        try:
+            return datetime.strptime(date_string, fmt)
+        except ValueError:
+            continue
+    return None
+def date_to_seconds(date_input):
+    if isinstance(date_input, datetime):
+        return int(date_input.timestamp())
+    elif isinstance(date_input, date):
+        datetime_input = datetime.combine(date_input, datetime.min.time())
+        return int(datetime_input.timestamp())
+    else:
+        valid_date = validate_date(date_input)
+        if valid_date:
+            return int(valid_date.timestamp())
+    return None
+
+
+
+def is_date_in_future (dur_start , duration):
+    today = date.today() 
+    if (date_to_seconds(dur_start) + duration*24*60*60) > date_to_seconds(today) : 
+        return 1
+    return 0
+    
+def ver_userDur (pr):
+    if isinstance(pr,profile) : 
+        
+        return is_date_in_future(pr.dur_start,pr.duration)
+    return -1
+
+def notSubAcc ():
+    pr = profile.objects.all() 
+    res = []
+    print(pr.count())
+    for a in pr : 
+        # if a.duration : 
+        print(a,'------',is_date_in_future(a.dur_start , a.duration))
+        if is_date_in_future(a.dur_start , a.duration) : 
+            res.append(profileSER(a).data)
+        return res 
+    return []
+
+
+
+
+import jwt
+from django.contrib.auth.models import User
+from django.conf import settings
+
+def get_user_from_token(token):
+    try:
+        # Decode the token using the secret key
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+
+        # Extract user_id from the payload (assuming it's in the 'user_id' field)
+        user_id = payload.get('user_id')
+
+        # Retrieve the user from the database
+        user = User.objects.filter(id=int(user_id))
+        
+        return user.first()
+    except jwt.ExpiredSignatureError:
+        # Token has expired
+        return None
+    except jwt.DecodeError:
+        # Token is invalid
+        return None
+    except User.DoesNotExist:
+        # User not found
+        return None
+
+
+def getCorrectAnswers (qz) : 
+    # if isinstance(qz,quiz) : 
+    #     return None
+    quee = question.objects.filter(quiz = qz) 
+    res = [] 
+    for a in quee : 
+        line = []
+        answers = answer.objects.filter(question = a , status = 1 )
+        for m in answers : 
+            line.append(int(m.id)) 
+        res.append({'QI':int(a.id) , 'CA' : line})
+    return {'QZID':int(qz.id),'QCI':str(qz.correctAnswer),'content':res}
+
+def handleseriecoorr (se) : 
+    qz = quiz.objects.filter(serie = se) 
+    res = [] 
+    print(qz)
+    for a in qz : 
+        dd = getCorrectAnswers(a) 
+        if dd : 
+            res.append(dd)
+    return res 

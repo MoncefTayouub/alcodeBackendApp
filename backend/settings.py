@@ -53,13 +53,11 @@ CORS_ALLOW_HEADERS = [
     'authorization',
     'x-requested-with',
 ]
-ALLOWED_HOSTS = ['46.202.171.42', 'srv668869.hstgr.cloud' ]
-
-
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 # git last edit 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000"
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000/"
+# ]
 CORS_ALLOW_ALL_ORIGINS = True 
 
 

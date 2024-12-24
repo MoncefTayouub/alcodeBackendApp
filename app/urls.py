@@ -13,11 +13,14 @@ urlpatterns = [
     path('search', views.search ) ,
     path('userlogin', views.user_login ) ,
     path('owner/profiles/<str:category>', views.ownerProfiles ) ,
-    path('loadData', views.loadData ) ,
+    path('course/content/<str:category>', views.filterCategory ) ,
+    path('loadData/<int:value>', views.loadData ) ,
     path('userResaults', views.seeRes ) ,
     # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     # path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('verify_token', views.verify_user_login),
+    path('userlogin/check', views.checkStuff),
+    path('userlogin/duration', views.checkDuration),
     path('contactUs', views.contactUs),
 
 ]

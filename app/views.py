@@ -26,7 +26,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
 from rest_framework_simplejwt.tokens import RefreshToken
 import jwt 
-
+from django.http import FileResponse
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from django.http import JsonResponse
@@ -35,6 +35,19 @@ from django.http import JsonResponse
 @api_view(['GET','POST','PUT','DELETE'])
 def Category_queries(request):    
     return Response('you are home')
+
+
+@api_view(['GET','POST','PUT','DELETE'])
+def filterCategory(request,category):  
+    if request.method == 'GET' :    
+        rq = serie.objects.filter(category=category)
+        print(category)
+        data = rq.order_by('-id')[:18]
+        return Response({
+            'content' : serieSER(data,many=True).data    
+        })
+        
+    return Response ()
 
 @api_view(['GET','POST','PUT','DELETE'])
 def userView(request):   
@@ -51,7 +64,10 @@ def userView(request):
             rq.phone_number = request.POST.get("phone_number")
             rq.mail = request.POST.get("mail")
             rq.dur_start = datetime.now()
-            rq.duration = request.POST.get("duration")
+            if request.POST.get("duration") == '' :
+                rq.duration = 0
+            else : 
+                rq.duration = request.POST.get("duration")
             rq.user = user 
             rq.save() 
             return Response({
@@ -65,6 +81,7 @@ def userView(request):
                 })
     if request.method == 'PUT' : 
         pr = profile.objects.filter(id = request.POST.get('id')) 
+        print('password',request.POST.get('password'))    
         if pr.count() : 
             rq = pr.first ()
             rq.firstname = request.POST.get('firstname')
@@ -110,6 +127,7 @@ def serieCroud(request):
             rq.icon = request.FILES['icon']
         rq.title = request.POST.get("title")
         rq.desc = request.POST.get("desc")
+        rq.category = request.POST.get("category")
         rq.save() 
         return Response({
             'status' : 1 , 
@@ -124,6 +142,7 @@ def serieCroud(request):
                 rq.icon = request.FILES['icon']
             rq.title = request.POST.get("title")
             rq.desc = request.POST.get("desc")
+            rq.category = request.POST.get("category")
             rq.save() 
             # qz = quiz.objects.filter(serie = rq) 
             # quizes = []
@@ -167,18 +186,18 @@ def quizCroud(request):
             rq.picture = request.FILES['picture']
             rq.correctAnswer = request.FILES['correctAnswer']
             rq.save() 
-            return Response ({
+            return Response ({   
                 'status' : 1 , 
                 'quiz' : quizSER(rq).data
             })
         else : 
             return Response({
                 'status' : -1 , 
-                'quiz' : None
+                'quiz' : None   ,
             })
     if request.method == 'PUT' : 
         rq = quiz.objects.get(id=request.POST.get('id'))
-        print('correctAnswer',request.FILES.get('correctAnswer'))
+        print('correctAnswer',request.FILES.get('correctAnswer'),request.FILES.get('correctAnswer') != None)
         if request.FILES != {} : 
             if (request.FILES.get('audio_content') != None) : 
                 rq.audio_content = request.FILES['audio_content']
@@ -187,7 +206,7 @@ def quizCroud(request):
             if (request.FILES.get('picture') != None) : 
                 rq.picture = request.FILES['picture']
             if (request.FILES.get('correctAnswer') != None) : 
-                rq.picture = request.FILES['correctAnswer']
+                rq.correctAnswer = request.FILES['correctAnswer']
         rq.save()
         rs = question.objects.filter(quiz = rq) 
         questions = []
@@ -311,11 +330,16 @@ def ownerProfiles(request,category):
             proSer = profile.objects.filter()
             return Response(profileSER(proSer,many=True).data)
         elif (category == 'NJ') : 
-            proSer = profile.objects.filter(duration__isnull = True)
-            return Response(profileSER(proSer,many=True).data)
+            # proSer = profile.objects.filter(duration__isnull = True)
+            pr = profile.objects.all() 
+            res = []
+            for a in pr : 
+                if is_date_in_future(a.dur_start , a.duration) : 
+                    res.append(profileSER(a).data)
+            return Response(res)
         elif (category == 'BC') :
             proSer = profile.objects.filter(contacted = True)
-            return Response(profileSER(proSer,many=True).data)
+            return Response(profileSER(proSer,many=True).data)    
         elif (category == 'NC') :    
             proSer = profile.objects.filter(contacted = False)
             return Response(profileSER(proSer,many=True).data)
@@ -333,7 +357,7 @@ def ownerProfiles(request,category):
         if (request.POST.get('state') == 'setconnect'):
             bol = False 
             if request.POST.get('inp') == 'true' : 
-                bol = True
+                bol = True   
             user = profile.objects.get(id = int(request.POST.get('id'))) 
             user.contacted =  bol
             user.save()
@@ -348,17 +372,17 @@ def ownerProfiles(request,category):
 
                 return Response({
                     'status' : 1 ,
-                    'content' : serieTest(rq)
+                    'content' : serieTest(rq) , 
+                    'correct' : handleseriecoorr(rq) , 
                 })
     return Response( {   
                 'status' : -10 ,
             })  
 
 @api_view(['GET','POST','PUT','DELETE'])
-def loadData(request):
+def loadData(request,value):
     if request.method == 'GET' : 
-        ser = serie.objects.get(id = 685)
-        
+        ser = serie.objects.get(id = int(value))
         return Response({
             'serieTest' : serieTest(ser) , 
             'res' : getResults(ser)
@@ -403,7 +427,13 @@ def user_login(request):
         if user is not None:
             # Log in the user
             login(request, user)
-            return Response({'status': 1, 'content': 'Login successful', "jwt": generate_tokens(user) })
+            # var = profile.objects.filter(user = user)
+            # status = -3
+            # if (var.exists()) : 
+            #     var = var.first()
+            #     status = ver_userDur(var)
+
+            return Response({'status': 1 , 'content': 'Login successful', "jwt": generate_tokens(user) })
         else:
             # Authentication failed
             return Response({'status': 0, 'content': 'Invalid username or password'})
@@ -449,17 +479,27 @@ def seeRes(request):
 @api_view(['GET','POST','PUT','DELETE'])
 def verify_user_login(request):
     # Extract the access token from the request
+    
     access_token = request.POST.get('accessToken')  # or get it from the headers
     ver = is_user_logged_in(access_token)
-    ser = serie.objects.all().order_by('-id')[:5]
-    return Response({'status':ver,'seriesF' : serieSER(ser,many=True).data})
+    ser = serie.objects.all().order_by('-id')[:5]      
+    print('ver',ver,'access_token',access_token)     
+    auth = get_user_from_token(access_token)
+    getAuth = False
+    if (auth != None) : 
+        pr = profile.objects.filter(user = auth) 
+        if pr.exists() : 
+            va = pr.first() 
+            getAuth = is_date_in_future(va.dur_start,va.duration)
+
+    return Response({'status':ver,'seriesF' : serieSER(ser,many=True).data,"auth":getAuth})
 
 @api_view(['GET','POST','PUT','DELETE'])
 def contactUs(request):
     if request.method == "POST" : 
         data = request.POST
         print(data)
-        rq = recievingMails.objects.create() 
+        rq = recievingMails.objects.create()     
         rq.fullNames = data.get('fullNames')
         rq.gmail = data.get('gmail')
         rq.subject = data.get('subject')
@@ -483,3 +523,35 @@ def contactUs(request):
                  'notSeen' : '',
                   'Seen' : '' , 
             })
+        
+@api_view(['GET','POST','PUT','DELETE'])
+def checkStuff(request):
+    if request.method == "POST" :
+        data = request.POST
+        pr = User.objects.filter(id = int(data.get('user')))
+        if pr.exists():  # Check if the QuerySet is not empty
+            user = pr.first()  # Get the first User object from the QuerySet
+            if user.is_staff:  # Check the is_staff attribute
+                return Response({'status': 1})
+        return Response({'status':0})
+    return Response({'status':0})
+
+@api_view(['GET','POST','PUT','DELETE'])
+def checkDuration(request):
+    if request.method == "POST" : 
+        data = request.POST
+        pr = User.objects.filter(id = int(data.get('user')))
+        if pr.exists():  # Check if the QuerySet is not empty
+            user = pr.first()
+            proo = profile.objects.filter(user = user)
+            if proo.exists() : 
+                hos = proo.first()
+                ser = serie.objects.get(id = int(data.get('data')))
+                return Response({
+                    'status':is_date_in_future(hos.dur_start,hos.duration),
+                    'serieTest' : serieTest(ser) , 
+                    'res' : getResults(ser)
+                }) 
+        return Response({'status':-1})
+
+    return Response()

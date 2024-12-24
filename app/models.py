@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 
 def upload_path(instance , filename):
     path = '/'.join(['covers',filename])
-    # path = ''.join([ path , '.jpg'])
     return path
 
 
@@ -24,10 +23,13 @@ class profile (models.Model) :
     def __str__(self):
         return " ".join([self.firstname ,self.lastname])
 
+
 class serie (models.Model) :    
+    category = models.IntegerField( null=True , blank=True,default=-1)
     title = models.TextField(blank=True ,  null=True) 
     desc = models.TextField(blank=True ,  null=True) 
     icon =  models.FileField(upload_to='icon/')
+    type = models.TextField(blank=True ,  null=True)
     def __str__(self):
         return self.title
 
