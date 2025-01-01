@@ -243,10 +243,13 @@ def getCorrectAnswers (qz) :
     for a in quee : 
         line = []
         answers = answer.objects.filter(question = a , status = 1 )
+
+
         for m in answers : 
             line.append(int(m.id)) 
-        res.append({'QI':int(a.id) , 'CA' : line})
-    return {'QZID':int(qz.id),'QCI':str(qz.correctAnswer),'content':res}
+        res.append({'QI':int(a.id), 'CA' : line})
+        # res.append({'QI':int(a.id),'explication':int(a.explication) , 'CA' : line})
+    return {'QZID':int(qz.id),'QCI':str(qz.correctAnswer),'auidio_explaination':str(qz.auidio_explaination),'content':res}
 
 def handleseriecoorr (se) : 
     qz = quiz.objects.filter(serie = se) 
@@ -257,3 +260,10 @@ def handleseriecoorr (se) :
         if dd : 
             res.append(dd)
     return res 
+
+
+def handleCategory () : 
+    res = []
+    for a in range(0,5):
+        res.append(serie.objects.filter(category = a).count()>0)
+    return res

@@ -44,6 +44,7 @@ class quiz (models.Model) :
 class question (models.Model) : 
     quiz = models.ForeignKey(quiz , on_delete=models.CASCADE , null= True , blank=True)
     content = models.TextField(blank=True ,  null=True) 
+    explication = models.TextField(blank=True ,  null=True)
     def __str__(self):
         return self.content
     

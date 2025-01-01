@@ -244,15 +244,18 @@ def answerCroud(request):
         if (c > 0) :
             quizrq = quiz.objects.get(id = request.POST.get('quiz'))
             data = json.loads(request.POST.get('content'))
+            print(data)
             for v in data  : 
                 rq = question.objects.create()
                 rq.quiz = quizrq 
                 rq.content = v['question']
+                rq.explication = v['explication']  
                 rq.save()
                 for k in v['answers'] : 
                     ra = answer.objects.create() 
                     ra.question = rq
                     ra.content = k['content']
+                    
                     if (k['status'] == 0) : 
                         ra.status = False
                     else : 
@@ -268,12 +271,14 @@ def answerCroud(request):
         if (c > 0) :
             quizrq = quiz.objects.get(id = request.POST.get('quiz'))
             data = json.loads(request.POST.get('content'))
+            print(data)
             for d in data : 
                 
                 if (d['id'] == -1 ) :
                     rq = question.objects.create()
                 else : 
                     rq = question.objects.get(id = d['id'])
+                rq.explication = d['explication']
                 rq.content = d['question']
                 rq.quiz = quizrq 
                 rq.save ()
@@ -348,8 +353,10 @@ def ownerProfiles(request,category):
             return Response(renderSerie(proSer))
         elif (category == 'HOME') : 
             data = serie.objects.all().order_by('-id')[:18]
+            
             return Response({
-                'content' : serieSER(data,many=True).data    
+                'content' : serieSER(data,many=True).data   ,
+                'categoryies' : handleCategory() , 
             })
            
 
@@ -368,8 +375,6 @@ def ownerProfiles(request,category):
             rq = serie.objects.filter(id = request.POST.get('id')) 
             if (rq.count()) : 
                 rq = serie.objects.get(id = request.POST.get('id')) 
-
-
                 return Response({
                     'status' : 1 ,
                     'content' : serieTest(rq) , 
@@ -482,8 +487,10 @@ def verify_user_login(request):
     
     access_token = request.POST.get('accessToken')  # or get it from the headers
     ver = is_user_logged_in(access_token)
-    ser = serie.objects.all().order_by('-id')[:5]      
-    print('ver',ver,'access_token',access_token)     
+    ser = serie.objects.all().order_by('-id')[:5]   
+
+    print('ver',ver,'access_token',access_token)   
+    categories = handleCategory()  
     auth = get_user_from_token(access_token)
     getAuth = False
     if (auth != None) : 
@@ -492,7 +499,7 @@ def verify_user_login(request):
             va = pr.first() 
             getAuth = is_date_in_future(va.dur_start,va.duration)
 
-    return Response({'status':ver,'seriesF' : serieSER(ser,many=True).data,"auth":getAuth})
+    return Response({'categories':categories,'status':ver,'seriesF' : serieSER(ser,many=True).data,"auth":getAuth})
 
 @api_view(['GET','POST','PUT','DELETE'])
 def contactUs(request):
