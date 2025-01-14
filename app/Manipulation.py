@@ -234,6 +234,18 @@ def get_user_from_token(token):
         # User not found
         return None
 
+def quizCorrAnswer (ser) :
+    qz = quiz.objects.filter(serie = ser)
+    resQz = []
+    for b  in qz : 
+        qq = question.objects.filter(quiz = b)
+        for a in qq : 
+            res = []
+            ans = answer.objects.filter(question = a , status = 1)
+            for n in ans : 
+                res.append(n.id)
+            resQz.append({'qzId':b.id,'qId':a.id , 'correctAnswers':res})    
+    return resQz
 
 def getCorrectAnswers (qz) : 
     # if isinstance(qz,quiz) : 

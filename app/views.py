@@ -41,7 +41,6 @@ def Category_queries(request):
 def filterCategory(request,category):  
     if request.method == 'GET' :    
         rq = serie.objects.filter(category=category)
-        print(category)
         data = rq.order_by('-id')[:18]
         return Response({
             'content' : serieSER(data,many=True).data    
@@ -83,6 +82,7 @@ def userView(request):
         pr = profile.objects.filter(id = request.POST.get('id')) 
         print('password',request.POST.get('password'))    
         if pr.count() : 
+
             rq = pr.first ()
             rq.firstname = request.POST.get('firstname')
             rq.lastname = request.POST.get('lastname')
@@ -90,7 +90,9 @@ def userView(request):
             rq.mail = request.POST.get('mail')
             rq.phone_number = request.POST.get('phone_number')
             if request.POST.get('password') != '' : 
-                rq.user.password = request.POST.get('password')
+                sq = rq.user
+                sq.password = request.POST.get('password')
+                sq.save()   
             if int(request.POST.get('duration')) != rq.duration : 
                 rq.duration = request.POST.get('duration')
                 rq.dur_start = datetime.now() 
@@ -193,11 +195,10 @@ def quizCroud(request):
         else : 
             return Response({
                 'status' : -1 , 
-                'quiz' : None   ,
+                'quiz' : None,
             })
     if request.method == 'PUT' : 
         rq = quiz.objects.get(id=request.POST.get('id'))
-        print('correctAnswer',request.FILES.get('correctAnswer'),request.FILES.get('correctAnswer') != None)
         if request.FILES != {} : 
             if (request.FILES.get('audio_content') != None) : 
                 rq.audio_content = request.FILES['audio_content']
@@ -244,7 +245,7 @@ def answerCroud(request):
         if (c > 0) :
             quizrq = quiz.objects.get(id = request.POST.get('quiz'))
             data = json.loads(request.POST.get('content'))
-            print(data)
+
             for v in data  : 
                 rq = question.objects.create()
                 rq.quiz = quizrq 
@@ -271,7 +272,6 @@ def answerCroud(request):
         if (c > 0) :
             quizrq = quiz.objects.get(id = request.POST.get('quiz'))
             data = json.loads(request.POST.get('content'))
-            print(data)
             for d in data : 
                 
                 if (d['id'] == -1 ) :
@@ -375,10 +375,11 @@ def ownerProfiles(request,category):
             rq = serie.objects.filter(id = request.POST.get('id')) 
             if (rq.count()) : 
                 rq = serie.objects.get(id = request.POST.get('id')) 
+                print( handleseriecoorr(rq))
                 return Response({
                     'status' : 1 ,
                     'content' : serieTest(rq) , 
-                    'correct' : handleseriecoorr(rq) , 
+                    'correct' : quizCorrAnswer(rq) , 
                 })
     return Response( {   
                 'status' : -10 ,
@@ -489,23 +490,20 @@ def verify_user_login(request):
     ver = is_user_logged_in(access_token)
     ser = serie.objects.all().order_by('-id')[:5]   
 
-    print('ver',ver,'access_token',access_token)   
     categories = handleCategory()  
     auth = get_user_from_token(access_token)
     getAuth = False
-    if (auth != None) : 
-        pr = profile.objects.filter(user = auth) 
+    if (auth != None) :
+        pr = profile.objects.filter(user = auth)
         if pr.exists() : 
             va = pr.first() 
             getAuth = is_date_in_future(va.dur_start,va.duration)
-
     return Response({'categories':categories,'status':ver,'seriesF' : serieSER(ser,many=True).data,"auth":getAuth})
 
 @api_view(['GET','POST','PUT','DELETE'])
 def contactUs(request):
     if request.method == "POST" : 
         data = request.POST
-        print(data)
         rq = recievingMails.objects.create()     
         rq.fullNames = data.get('fullNames')
         rq.gmail = data.get('gmail')
