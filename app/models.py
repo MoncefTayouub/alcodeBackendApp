@@ -21,7 +21,7 @@ class profile (models.Model) :
     duration = models.IntegerField(blank=True ,  null=True) 
     contacted = models.BooleanField(default=False)
     def __str__(self):
-        return " ".join([self.firstname ,self.lastname])
+        return " ".join([str(self.firstname)])
 
 
 class serie (models.Model) :    

@@ -80,7 +80,6 @@ def userView(request):
                 })
     if request.method == 'PUT' : 
         pr = profile.objects.filter(id = request.POST.get('id')) 
-        print('password',request.POST.get('password'))    
         if pr.count() : 
 
             rq = pr.first ()
@@ -91,7 +90,8 @@ def userView(request):
             rq.phone_number = request.POST.get('phone_number')
             if request.POST.get('password') != '' : 
                 sq = rq.user
-                sq.password = request.POST.get('password')
+                # usr = User 
+                sq.set_password(request.POST.get('password'))
                 sq.save()   
             if int(request.POST.get('duration')) != rq.duration : 
                 rq.duration = request.POST.get('duration')
@@ -186,7 +186,8 @@ def quizCroud(request):
             rq.auidio_explaination = request.FILES['auidio_explaination']
             rq.audio_content = request.FILES['audio_content']
             rq.picture = request.FILES['picture']
-            rq.correctAnswer = request.FILES['correctAnswer']
+            if 'correctAnswer' in request.FILES:
+                rq.correctAnswer = request.FILES['correctAnswer']
             rq.save() 
             return Response ({   
                 'status' : 1 , 
@@ -375,7 +376,6 @@ def ownerProfiles(request,category):
             rq = serie.objects.filter(id = request.POST.get('id')) 
             if (rq.count()) : 
                 rq = serie.objects.get(id = request.POST.get('id')) 
-                print( handleseriecoorr(rq))
                 return Response({
                     'status' : 1 ,
                     'content' : serieTest(rq) , 

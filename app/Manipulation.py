@@ -236,6 +236,7 @@ def get_user_from_token(token):
 
 def quizCorrAnswer (ser) :
     qz = quiz.objects.filter(serie = ser)
+    print(qz)
     resQz = []
     for b  in qz : 
         qq = question.objects.filter(quiz = b)
