@@ -19,6 +19,7 @@ urlpatterns = [
     # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     # path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('verify_token', views.verify_user_login),
+    path('logout', views.logout),
     path('userlogin/check', views.checkStuff),
     path('userlogin/duration', views.checkDuration),
     path('contactUs', views.contactUs),

@@ -17,11 +17,12 @@ class profile (models.Model) :
     lastname = models.TextField(blank=True ,  null=True)
     phone_number = models.TextField(blank=True ,  null=True)
     mail = models.TextField(blank=True ,  null=True)
-    dur_start = models.DateField(blank=True ,  null=True) 
-    duration = models.IntegerField(blank=True ,  null=True) 
+    dur_start = models.DateField(blank=True ,  null=True)
+    duration = models.IntegerField(blank=True ,  null=True)
     contacted = models.BooleanField(default=False)
+    browser = models.TextField(blank=True ,  null=True)
     def __str__(self):
-        return " ".join([str(self.firstname)])
+        return " ".join([str(self.firstname)])   
 
 
 class serie (models.Model) :    

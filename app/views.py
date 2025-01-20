@@ -146,18 +146,7 @@ def serieCroud(request):
             rq.desc = request.POST.get("desc")
             rq.category = request.POST.get("category")
             rq.save() 
-            # qz = quiz.objects.filter(serie = rq) 
-            # quizes = []
-            # for q in qz :
-            #     s = question.objects.filter(quiz = q)
-            #     quest = ''
-            #     if (s.count()) : 
-            #         quest = s.first().content
-            #     quizes.append({
-            #         'quizId' : q.id ,
-            #         'question' : quest ,  
-            #         'quizOB' : quizSER(q).data
-            #     })
+    
             return Response({
                 'status' : 1 , 
                 'quiz' : serieQuizes(rq),    
@@ -483,8 +472,26 @@ def seeRes(request):
 
 
 @api_view(['GET','POST','PUT','DELETE'])
+def logout(request):
+    if request.method == 'POST':
+        # Get the access token from the request
+        access_token = request.POST.get('accessToken')
+        auth = get_user_from_token(access_token)
+        getAuth = False
+        if (auth != None) :
+            pr = profile.objects.filter(user = auth)
+            if pr.exists() : 
+                va = pr.first() 
+                va.browser = None
+                va.save()
+
+        # Delete the access token
+        # is_user_logged_in(access_token)
+        return Response({'status': 1, 'content': 'Logout successful'})
+    return Response({'status': -1, 'content': 'Invalid request method'})
+
+@api_view(['GET','POST','PUT','DELETE'])
 def verify_user_login(request):
-    # Extract the access token from the request
     
     access_token = request.POST.get('accessToken')  # or get it from the headers
     ver = is_user_logged_in(access_token)
@@ -497,7 +504,16 @@ def verify_user_login(request):
         pr = profile.objects.filter(user = auth)
         if pr.exists() : 
             va = pr.first() 
-            getAuth = is_date_in_future(va.dur_start,va.duration)
+            print('-------',va.browser,va.browser is None,request.POST.get('browserID'))
+            if va.browser is None : 
+                va.browser = request.POST.get('browserID')
+                va.save()
+                getAuth = is_date_in_future(va.dur_start,va.duration)
+            elif va.browser != request.POST.get('browserID') : 
+                getAuth = -1 
+            else :
+                getAuth = is_date_in_future(va.dur_start,va.duration)
+            print('getAuth',getAuth)
     return Response({'categories':categories,'status':ver,'seriesF' : serieSER(ser,many=True).data,"auth":getAuth})
 
 @api_view(['GET','POST','PUT','DELETE'])

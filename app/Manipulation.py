@@ -181,7 +181,7 @@ def date_to_seconds(date_input):
 
 
 
-def is_date_in_future (dur_start , duration):
+def is_date_in_future (dur_start , duration) :
     today = date.today() 
     if (date_to_seconds(dur_start) + duration*24*60*60) > date_to_seconds(today) : 
         return 1
@@ -196,10 +196,8 @@ def ver_userDur (pr):
 def notSubAcc ():
     pr = profile.objects.all() 
     res = []
-    print(pr.count())
     for a in pr : 
         # if a.duration : 
-        print(a,'------',is_date_in_future(a.dur_start , a.duration))
         if is_date_in_future(a.dur_start , a.duration) : 
             res.append(profileSER(a).data)
         return res 
@@ -214,13 +212,8 @@ from django.conf import settings
 
 def get_user_from_token(token):
     try:
-        # Decode the token using the secret key
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-
-        # Extract user_id from the payload (assuming it's in the 'user_id' field)
         user_id = payload.get('user_id')
-
-        # Retrieve the user from the database
         user = User.objects.filter(id=int(user_id))
         
         return user.first()
@@ -236,7 +229,6 @@ def get_user_from_token(token):
 
 def quizCorrAnswer (ser) :
     qz = quiz.objects.filter(serie = ser)
-    print(qz)
     resQz = []
     for b  in qz : 
         qq = question.objects.filter(quiz = b)
@@ -252,7 +244,7 @@ def getCorrectAnswers (qz) :
     # if isinstance(qz,quiz) : 
     #     return None
     quee = question.objects.filter(quiz = qz) 
-    res = [] 
+    res = []    
     for a in quee : 
         line = []
         answers = answer.objects.filter(question = a , status = 1 )
@@ -267,7 +259,6 @@ def getCorrectAnswers (qz) :
 def handleseriecoorr (se) : 
     qz = quiz.objects.filter(serie = se) 
     res = [] 
-    print(qz)
     for a in qz : 
         dd = getCorrectAnswers(a) 
         if dd : 
@@ -280,3 +271,31 @@ def handleCategory () :
     for a in range(0,5):
         res.append(serie.objects.filter(category = a).count()>0)
     return res
+
+
+
+def testAuth (access_token,browserID): 
+
+    ver = is_user_logged_in(access_token)
+    ser = serie.objects.all().order_by('-id')[:5]   
+
+    categories = handleCategory()  
+    auth = get_user_from_token(access_token)
+    getAuth = False
+    if (auth != None) :
+        pr = profile.objects.filter(user = auth)  
+        if pr.exists() : 
+            va = pr.first() 
+            print('-------',va.browser,va.browser is None,browserID)
+            if va.browser is None : 
+                va.browser = browserID
+                va.save()
+                getAuth = is_date_in_future(va.dur_start,va.duration)
+            elif va.browser != browserID :
+                getAuth = -1 
+            else :
+                getAuth = is_date_in_future(va.dur_start,va.duration)
+            print('getAuth',getAuth)
+    return ({'status':ver,"auth":getAuth})
+
+# 'seriesF' : serieSER(ser,many=True).data,'categories':categories,
