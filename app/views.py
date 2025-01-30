@@ -227,6 +227,21 @@ def quizCroud(request):
             }))
 
 @api_view(['GET','POST','PUT','DELETE'])
+def clearExpImg(request): 
+    if request.method == 'POST' : 
+        qr = quiz.objects.get(id = request.POST.get('id'))
+        qr.correctAnswer = None 
+        qr.save()
+        return Response(({
+                    'status' : 1 , 
+                    'quiz' : None  
+                }))
+    return Response(({
+                    'status' : -100 , 
+                    'quiz' : None  
+                }))
+
+@api_view(['GET','POST','PUT','DELETE'])
 def answerCroud(request): 
     if request.method == 'POST' : 
         c = quiz.objects.filter(id=request.POST.get('quiz')).count()
@@ -504,7 +519,7 @@ def verify_user_login(request):
         pr = profile.objects.filter(user = auth)
         if pr.exists() : 
             va = pr.first() 
-            print('-------',va.browser,va.browser is None,request.POST.get('browserID'))
+
             if va.browser is None : 
                 va.browser = request.POST.get('browserID')
                 va.save()
@@ -513,7 +528,6 @@ def verify_user_login(request):
                 getAuth = -1 
             else :
                 getAuth = is_date_in_future(va.dur_start,va.duration)
-            print('getAuth',getAuth)
     return Response({'categories':categories,'status':ver,'seriesF' : serieSER(ser,many=True).data,"auth":getAuth})
 
 @api_view(['GET','POST','PUT','DELETE'])

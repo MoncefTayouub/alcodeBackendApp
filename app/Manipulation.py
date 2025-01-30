@@ -286,7 +286,6 @@ def testAuth (access_token,browserID):
         pr = profile.objects.filter(user = auth)  
         if pr.exists() : 
             va = pr.first() 
-            print('-------',va.browser,va.browser is None,browserID)
             if va.browser is None : 
                 va.browser = browserID
                 va.save()
@@ -295,7 +294,6 @@ def testAuth (access_token,browserID):
                 getAuth = -1 
             else :
                 getAuth = is_date_in_future(va.dur_start,va.duration)
-            print('getAuth',getAuth)
     return ({'status':ver,"auth":getAuth})
 
 # 'seriesF' : serieSER(ser,many=True).data,'categories':categories,

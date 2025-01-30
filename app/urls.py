@@ -9,6 +9,7 @@ urlpatterns = [
     path('owner/user', views.userView ) ,
     path('owner/serie', views.serieCroud ) ,
     path('owner/quiz', views.quizCroud ) ,
+    path('owner/clearImgExp', views.clearExpImg ) ,
     path('owner/answer', views.answerCroud ) ,
     path('search', views.search ) ,
     path('userlogin', views.user_login ) ,
