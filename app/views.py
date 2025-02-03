@@ -552,12 +552,19 @@ def contactUs(request):
             rq.first().seen = True
             rq.save()
             return Response(handleMails())
-        else : 
-            return Response({   
-                'status' : 0 , 
-                 'notSeen' : '',
-                  'Seen' : '' , 
-            })
+    if request.method == "DELETE" : 
+        data = request.POST
+        rq = recievingMails.objects.filter(id = data.get('id')) 
+        if rq.count() : 
+            rq.first().delete()
+            return Response(handleMails())
+        return Response(None)
+    else : 
+        return Response({   
+            'status' : 0 , 
+                'notSeen' : '',
+                'Seen' : '' , 
+        })
         
 @api_view(['GET','POST','PUT','DELETE'])
 def checkStuff(request):
