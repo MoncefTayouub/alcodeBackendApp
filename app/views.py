@@ -550,7 +550,7 @@ def contactUs(request):
         rq = recievingMails.objects.filter(id = data.get('id'))
         if rq.count() : 
             rq.first().seen = True
-            rq.save()
+            rq.first().save()
             return Response(handleMails())
     if request.method == "DELETE" : 
         data = request.POST
